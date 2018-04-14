@@ -44,25 +44,12 @@ class TimeTableModel():
 
 
 class LineNameModel():
-    def __init__(self):
-        url = 'http://www.mpk.lodz.pl/rozklady/linie.jsp'
-        print(f'getting line IDs from {url}')
-        resp = requests.get(url)
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        dWrkspc = soup.find('div', {'id': "dWrkspc"})
-        dLineTypes = dWrkspc.find_all('div', class_="dLines")
-        lineNameId = {}
-        for lineType in dLineTypes:
-            tData = lineType.find('table').find('td')
-            for dataRow in tData.find_all('a'):
-                lineName = dataRow.get_text()
-                lineId = dataRow.get('href').partition('?')[2].partition('&')[0].partition('=')[2]
-                lineNameId.update({lineName: lineId})
-        self.lineNameId = lineNameId
+    def __init__():
+        pass
 
     def find_id_by_name(self, lineName):
-        if lineName in self.lineNameId:
-            lineId = self.lineNameId[f'{lineName}']
+        if lineName in lineNameIddb:
+            lineId = lineNameIddb[f'{lineName}']
             return {"lineName": lineName, "lineId": lineId}
         else:
-            return 'None'
+            return {'Message': None}

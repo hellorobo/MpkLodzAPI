@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_restful import Api
-from resources.timetable import TimeTable, LineNameId
+from resources.timetable import TimeTable, LineNameId, LineName
 
 
 app = Flask(__name__)
@@ -11,3 +11,4 @@ api.add_resource(LineNameId, '/lineid/<string:linename>')
 
 if __name__ == '__main__':
     app.run(port=5002, debug=True)
+    lineNamesDb = LineName().getLineNameIds()
