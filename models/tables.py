@@ -2,9 +2,18 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import requests
 
+w1 = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+w2 = ' (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36'
+
+l1 = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
+l2 = '(KHTML, like Gecko) Ubuntu Chromium/62.0.3202.89 Chrome/62.0.3202.89 Safari/537.36'
+
+agent = {'User-Agent': l1 + l2}
+
+
 def getLineNameIds(url):
-    print('getting line IDs from {}'.format(url))
-    resp = requests.get(url)
+    print(f'getting line IDs from {url}')
+    resp = requests.get(url, headers=agent)
     soup = BeautifulSoup(resp.text, 'html.parser')
     dWrkspc = soup.find('div', {'id': "dWrkspc"})
     dLineTypes = dWrkspc.find_all('div', class_="dLines")
@@ -21,20 +30,16 @@ def getLineNameIds(url):
 lineNameIdDB = getLineNameIds('http://www.mpk.lodz.pl/rozklady/linie.jsp')
 
 class TimeTableModel():
-    pass
-'''
-    a1 = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-    a2 = ' (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36'
-    agent = {'User-Agent': a1 + a2}
 
     def __init__(self):
         pass
 
-    def get(self, url, direction, lineId, timetableId, stopNumber):
+    def get(self, url, direction, lineName, timetableId, stopNumber):
+        lineId = lineNameIdDB[f'{lineName}']
         dt = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
-        self.curl = f'{url}?direction={direction}&lineId={lineId}&timetableId={timetableId}&stopNumber={stopNumber}&date={dt}'
+        curl = f'{url}?direction={direction}&lineId={lineId}&timetableId={timetableId}&stopNumber={stopNumber}&date={dt}'
 
-        resp = requests.get(self.curl, headers=self.agent)
+        resp = requests.get(curl, headers=agent)
         soup = BeautifulSoup(resp.text, 'html.parser')
 
         dTab = soup.find("div", {"id": "dTab"})
@@ -44,7 +49,7 @@ class TimeTableModel():
         dDayTables = {}
         for dName, tName in dDayTypeNames.items():
             dDayTables[dName] = dDayTypes.find("div", {"id": "table_{}".format(tName)}).find('table')
-        bustimetable = {f'{lineId}': ''}
+        bustimetable = {f'{lineName}': ''}
         daytimetable = {}
         timetable = {}
 
@@ -56,10 +61,10 @@ class TimeTableModel():
                     minute.append(cell.get_text())
                 timetable.update({f'{hour}': minute})
             daytimetable.update({dName: timetable})
-        bustimetable.update({f'{lineId}': daytimetable})
+        bustimetable.update({f'{lineName}': daytimetable})
 
-        return self
-'''
+        return bustimetable
+
 
 class LineNameModel():
 
