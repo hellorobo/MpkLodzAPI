@@ -2,9 +2,27 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import requests
 
+def getLineNameIds(url):
+    print('getting line IDs from {}'.format(url))
+    resp = requests.get(url)
+    soup = BeautifulSoup(resp.text, 'html.parser')
+    dWrkspc = soup.find('div', {'id': "dWrkspc"})
+    dLineTypes = dWrkspc.find_all('div', class_="dLines")
+    lineNameId = {}
+    for lineType in dLineTypes:
+        tData = lineType.find('table').find('td')
+        for dataRow in tData.find_all('a'):
+            lineName = dataRow.get_text()
+            lineId = dataRow.get('href').partition('?')[2].partition('&')[0].partition('=')[2]
+            lineNameId.update({lineName: lineId})
+
+    return lineNameId
+
+lineNameIdDB = getLineNameIds('http://www.mpk.lodz.pl/rozklady/linie.jsp')
 
 class TimeTableModel():
-
+    pass
+'''
     a1 = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
     a2 = ' (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36'
     agent = {'User-Agent': a1 + a2}
@@ -41,15 +59,13 @@ class TimeTableModel():
         bustimetable.update({f'{lineId}': daytimetable})
 
         return self
-
+'''
 
 class LineNameModel():
-    def __init__():
-        pass
 
     def find_id_by_name(self, lineName):
-        if lineName in lineNameIddb:
-            lineId = lineNameIddb[f'{lineName}']
+        if lineName in lineNameIdDB:
+            lineId = lineNameIdDB['{}'.format(lineName)]
             return {"lineName": lineName, "lineId": lineId}
         else:
-            return {'Message': None}
+            return {'Message': None}, 404
