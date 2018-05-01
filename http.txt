@@ -4,6 +4,7 @@ http://127.0.0.1:5002/lineid/89
 
 http://127.0.0.1:5002/lineid/199
 
-
-
+#=======time table========
 http://127.0.0.1:5002/timetable/73
+#=======departuere========
+http://127.0.0.1:5002/departure/73

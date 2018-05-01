@@ -1,6 +1,7 @@
 from datetime import datetime
 from bs4 import BeautifulSoup
 import requests
+import holidays
 
 w1 = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
 w2 = ' (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36'
@@ -27,7 +28,9 @@ def getLineNameIds(url):
 
     return lineNameId
 
+
 lineNameIdDB = getLineNameIds('http://www.mpk.lodz.pl/rozklady/linie.jsp')
+
 
 class TimeTableModel():
 
@@ -61,6 +64,7 @@ class TimeTableModel():
                     minute.append(cell.get_text())
                 timetable.update({f'{hour}': minute})
             daytimetable.update({dName: timetable})
+            timetable = {}
         bustimetable.update({f'{lineName}': daytimetable})
 
         return bustimetable
@@ -71,6 +75,66 @@ class LineNameModel():
     def find_id_by_name(self, lineName):
         if lineName in lineNameIdDB:
             lineId = lineNameIdDB['{}'.format(lineName)]
-            return {"lineName": lineName, "lineId": lineId}
+            return {"lineId": lineId}
         else:
             return {'Message': None}, 404
+
+    def find_routeTable_by_id(self, lineId):
+
+        dateTime = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
+        urlRoot = 'http://www.mpk.lodz.pl/rozklady/trasa.jsp'
+        urlTail = f'?lineId={lineId}&date={dateTime}'
+        url = urlRoot + urlTail
+
+        print(f'find_routeTable_by_id url ==> {url}')
+
+        resp = requests.get(url, headers=agent)
+        soup = BeautifulSoup(resp.content, 'lxml')
+
+        dRoute = soup.find('div', {'id': "dRoute"})
+
+        routeTableDB = {f'{lineId}': {}}
+        dStreetStop = {}
+        dDirectionTable = {}
+
+        tData = dRoute.find('table').findAll('tr', recursive=False)
+        tDirectionTables = tData[1]
+        for Table in tDirectionTables.findAll('td', recursive=False):
+            tDirection = Table.find('div', {'class': 'headSign'}).contents[0]  # route direction
+            Rows = Table.find('table').findAll('tr', recursive=False)
+            for Row in Rows[1:]:  # skipping table header
+                Cells = Row.findAll('td', recursive=False)
+
+                sStreet = Cells[0].get_text().strip()
+                sStop = Cells[2].get_text().strip()
+                sStreetStop = (f'{sStreet} {sStop}').lstrip()
+
+                sDirection = Cells[2].find('a').get('href').partition('?')[2].split('&')[0].partition('=')[2]
+                sTimeTableId = Cells[2].find('a').get('href').partition('?')[2].split('&')[2].partition('=')[2]
+                sNumber = Cells[2].find('a').get('href').partition('?')[2].split('&')[3].partition('=')[2]
+
+                dStreetStop.update({sStreetStop: {'direction': sDirection, 'stopNumber': sNumber, 'timeTableId': sTimeTableId}})
+            dDirectionTable.update({tDirection: dStreetStop})
+            dStreetStop = {}
+        routeTableDB.update({lineId: dDirectionTable})
+
+        return routeTableDB
+
+
+class DateModel():
+    holidays = holidays.PL(years=datetime.now().year)
+
+    def getnow(self):
+        now = datetime.now()
+        return now
+
+    def daytype(self, date):
+        weekday = date.weekday()
+        if (date in holidays) or (weekday == 6):
+            return 'NIEDZIELA'
+        if weekday in range(0, 5):
+            return 'ROBOCZY'
+        if weekday == 5:
+            return 'SOBOTA'
+
+        return None
