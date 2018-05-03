@@ -11,6 +11,8 @@ l2 = '(KHTML, like Gecko) Ubuntu Chromium/62.0.3202.89 Chrome/62.0.3202.89 Safar
 
 agent = {'User-Agent': l1 + l2}
 
+holiday = holidays.PL(years=datetime.now().year)
+
 
 def getLineNameIds(url):
     print(f'getting line IDs from {url}')
@@ -69,6 +71,20 @@ class TimeTableModel():
 
         return bustimetable
 
+    def get_bus_table(self, lineName, directionName, stopName):
+
+        lineId = LineNameModel().find_id_by_name(lineName)['lineId']
+        routeTable = LineNameModel().find_routeTable_by_id(lineId)
+        busStop = routeTable[lineId][directionName][stopName]
+        direction = busStop['direction']
+        timetableId = busStop['timeTableId']
+        stopNumber = busStop['stopNumber']
+
+        url = 'http://www.mpk.lodz.pl/rozklady/tabliczka.jsp'
+        table = TimeTableModel().get(url, direction, lineName, timetableId, stopNumber)
+
+        return table
+
 
 class LineNameModel():
 
@@ -122,7 +138,6 @@ class LineNameModel():
 
 
 class DateModel():
-    holidays = holidays.PL(years=datetime.now().year)
 
     def getnow(self):
         now = datetime.now()
@@ -130,7 +145,7 @@ class DateModel():
 
     def daytype(self, date):
         weekday = date.weekday()
-        if (date in holidays) or (weekday == 6):
+        if (date in holiday) or (weekday == 6):
             return 'NIEDZIELA'
         if weekday in range(0, 5):
             return 'ROBOCZY'
