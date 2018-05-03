@@ -23,10 +23,5 @@ class Departure(Resource):
     def get(self, lineName):
         directionName = 'pl. Wolności'
         stopName = 'Radogoszcz Zachód'
-        dt = DateModel().getnow()
-        table = TimeTableModel().get_bus_table(lineName, directionName, stopName)
-        day = DateModel().daytype(dt)
-        print(day)
-        tableDay = table[lineName][day]
-
-        return tableDay
+        nextDeparture = DateModel().getdeparture(lineName, directionName, stopName)
+        return nextDeparture

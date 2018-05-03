@@ -8,3 +8,4 @@ http://127.0.0.1:5002/timetable/73
 
 # =======departuere========
 http://127.0.0.1:5002/departure/73
+http://127.0.0.1:5002/departure/89

@@ -139,11 +139,13 @@ class LineNameModel():
 
 class DateModel():
 
-    def getnow(self):
+    @staticmethod
+    def getnow():
         now = datetime.now()
         return now
 
-    def daytype(self, date):
+    @classmethod
+    def daytype(cls, date):
         weekday = date.weekday()
         if (date in holiday) or (weekday == 6):
             return 'NIEDZIELA'
@@ -152,4 +154,24 @@ class DateModel():
         if weekday == 5:
             return 'SOBOTA'
 
+        return None
+
+    def getdeparture(self, lineName, directionName, stopName):
+        now = self.getnow()
+        table = TimeTableModel().get_bus_table(lineName, directionName, stopName)
+        day = self.daytype(now)
+
+        tableDay = table[lineName][day]
+        hours = [th for th in tableDay.keys() if int(th) >= now.hour]
+        # TODO: handle no key error!
+        # TODO: make sure that list is ordered
+
+        for hour in hours:
+            for minute in tableDay[hour]:
+                    # TODO: minutes with 'x'
+                tblTime = datetime.strptime(f'{hour}:{minute}:00', '%X')
+                print(f'tblTime: {tblTime.time()}')
+                print(f'now.time:{now.time()}')
+                if tblTime.time() >= now.time():
+                    return {'time': str(tblTime.time())}
         return None
