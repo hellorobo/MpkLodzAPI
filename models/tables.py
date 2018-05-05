@@ -13,6 +13,21 @@ agent = {'User-Agent': l1 + l2}
 
 holiday = holidays.PL(years=datetime.now().year)
 
+busStop = {
+    "73": {
+        "directionName": "pl. Wolności",
+        "stopName": "Radogoszcz Zachód"
+    },
+    "99": {
+        "directionName": "Retkinia",
+        "stopName": "Radogoszcz Zachód"
+    },
+    "89": {
+        "directionName": "cm. Szczecińska",
+        "stopName": "Radogoszcz Zachód"
+    }
+}
+
 
 def getLineNameIds(url):
     print(f'getting line IDs from {url}')
@@ -88,6 +103,15 @@ class TimeTableModel():
 
 class LineNameModel():
 
+    @classmethod
+    def getbusstop(cls, lineName):
+        try:
+            stop = busStop[lineName]
+        except KeyError:
+            return None
+
+        return stop
+
     def find_id_by_name(self, lineName):
         if lineName in lineNameIdDB:
             lineId = lineNameIdDB['{}'.format(lineName)]
@@ -102,7 +126,7 @@ class LineNameModel():
         urlTail = f'?lineId={lineId}&date={dateTime}'
         url = urlRoot + urlTail
 
-        print(f'find_routeTable_by_id url ==> {url}')
+        # print(f'find_routeTable_by_id url ==> {url}')
 
         resp = requests.get(url, headers=agent)
         soup = BeautifulSoup(resp.content, 'lxml')
@@ -152,7 +176,7 @@ class DateModel():
         if weekday in range(0, 5):
             return 'ROBOCZY'
         if weekday == 5:
-            return 'SOBOTA'
+            return 'SOBOTY'
 
         return None
 
@@ -168,10 +192,18 @@ class DateModel():
 
         for hour in hours:
             for minute in tableDay[hour]:
-                    # TODO: minutes with 'x'
+
+                # deal with minutes with 'x'
+                remark = 'None'
+                if len(minute) > 2:
+                    minute = minute.strip('x')
+                    remark = 'x'
+
                 tblTime = datetime.strptime(f'{hour}:{minute}:00', '%X')
-                print(f'tblTime: {tblTime.time()}')
-                print(f'now.time:{now.time()}')
                 if tblTime.time() >= now.time():
-                    return {'time': str(tblTime.time())}
+                    return {
+                        "lineName": lineName,
+                        "time": str(tblTime.time()),
+                        "note": remark
+                    }
         return None
