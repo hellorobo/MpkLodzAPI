@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import requests
 import holidays
@@ -16,15 +16,18 @@ holiday = holidays.PL(years=datetime.now().year)
 busStop = {
     "73": {
         "directionName": "pl. Wolności",
-        "stopName": "Radogoszcz Zachód"
+        "stopName": "Radogoszcz Zachód",
+        "walkTime": 5
     },
     "99": {
         "directionName": "Retkinia",
-        "stopName": "Radogoszcz Zachód"
+        "stopName": "Radogoszcz Zachód",
+        "walkTime": 5
     },
     "89": {
         "directionName": "cm. Szczecińska",
-        "stopName": "Radogoszcz Zachód"
+        "stopName": "Radogoszcz Zachód",
+        "walkTime": 5
     }
 }
 
@@ -164,9 +167,9 @@ class LineNameModel():
 class DateModel():
 
     @staticmethod
-    def getnow():
-        now = datetime.now()
-        return now
+    def getnowpluswalk(walk):
+        time = datetime.now() + timedelta(minutes=walk)
+        return time
 
     @classmethod
     def daytype(cls, date):
@@ -180,13 +183,14 @@ class DateModel():
 
         return None
 
-    def getdeparture(self, lineName, directionName, stopName):
-        now = self.getnow()
+    def getdeparture(self, lineName, directionName, stopName, myTime):
+
         table = TimeTableModel().get_bus_table(lineName, directionName, stopName)
-        day = self.daytype(now)
+        # now = self.getnow()
+        day = self.daytype(myTime)
 
         tableDay = table[lineName][day]
-        hours = [th for th in tableDay.keys() if int(th) >= now.hour]
+        hours = [th for th in tableDay.keys() if int(th) >= myTime.hour]
         # TODO: handle no key error!
         # TODO: make sure that list is ordered
 
@@ -200,7 +204,7 @@ class DateModel():
                     remark = 'x'
 
                 tblTime = datetime.strptime(f'{hour}:{minute}:00', '%X')
-                if tblTime.time() >= now.time():
+                if tblTime.time() >= myTime.time():
                     return {
                         "lineName": lineName,
                         "time": str(tblTime.time()),

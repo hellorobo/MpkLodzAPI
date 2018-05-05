@@ -28,7 +28,9 @@ class Departure(Resource):
         if busStop:
             directionName = busStop['directionName']
             stopName = busStop['stopName']
-            nextDeparture = DateModel().getdeparture(lineName, directionName, stopName)
+            walkTime = busStop['walkTime']
+            myTime = DateModel.getnowpluswalk(walkTime)
+            nextDeparture = DateModel().getdeparture(lineName, directionName, stopName, myTime)
             httpResponse = 200
         else:
             nextDeparture = {"message": "Error"}
