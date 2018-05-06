@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import pytz
 from bs4 import BeautifulSoup
 import requests
 import holidays
@@ -168,7 +169,7 @@ class DateModel():
 
     @staticmethod
     def getnowpluswalk(walk):
-        time = datetime.now() + timedelta(minutes=walk)
+        time = datetime.now(pytz.timezone('Europe/Warsaw')) + timedelta(minutes=walk)
         return time
 
     @classmethod
